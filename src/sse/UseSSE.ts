@@ -1,53 +1,61 @@
-import {useEffect, useRef, useState} from 'react';
-import {EventSourceMessage} from '@microsoft/fetch-event-source';
+import {useEffect, useRef, useState} from "react";
+import {EventSourceMessage} from "@microsoft/fetch-event-source";
 import {SSEStatus} from "./SSEStatus";
 import {sseRegistry} from "./SSERegistry";
 import {SSEManager} from "./SSEManager";
 
 type UseSSEParams = {
-    url: string | null;
-    headers?: Record<string, string>;
+    url?: string | null | Promise<string | null>;
+    headers?: Record<string, string> | Promise<Record<string, string>>;
     onMessage: (event: EventSourceMessage) => void;
     enabled?: boolean;
 };
 
-/**
- * 内部会复用链接,无需关心实现,即使多次调用也没有关系
- * @param url
- * @param headers
- * @param onMessage
- * @param enabled /// 可以控制,比如未登录的情况下不要订阅
- * @return {status} 状态
- */
 export function useSSE({
                            url,
                            headers,
                            onMessage,
                            enabled = true,
                        }: UseSSEParams) {
-    // 保证回调不因 render 变化导致重复订阅
     const callbackRef = useRef(onMessage);
     callbackRef.current = onMessage;
+
     const [status, setStatus] = useState<SSEStatus>(SSEStatus.idle);
+
     useEffect(() => {
-        if (!url || !enabled) return;
+        if (!enabled) return;
 
-        const manager = sseRegistry.getOrCreate(url, () => {
-            return new SSEManager(url, headers || {})
-        });
+        let canceled = false; // 用于处理 cleanup
+        let manager: SSEManager | null = null;
+        let unsubscribe: (() => void) | null = null;
+        let stateUnsubscribe: (() => void) | null = null;
 
-        const unsubscribe = manager.subscribe((event) => {
-            callbackRef.current(event);
-        });
-        const stateUnsubscribe = manager.subscribeStatus((status) => {
-            setStatus(status)
-        });
+        async function setupSSE() {
+            // 先解析异步 url 和 headers
+            const resolvedUrl = typeof url === "function" || url instanceof Promise ? await url : url;
+            if (!resolvedUrl) return;
+
+            const resolvedHeaders = headers instanceof Promise ? await headers : headers || {};
+
+            if (canceled) return; // 组件卸载或依赖变化时直接返回
+
+            manager = sseRegistry.getOrCreate(resolvedUrl, () => new SSEManager(resolvedUrl, resolvedHeaders));
+
+            unsubscribe = manager.subscribe((event) => {
+                callbackRef.current(event);
+            });
+
+            stateUnsubscribe = manager.subscribeStatus((s) => setStatus(s));
+        }
+
+        setupSSE().catch(console.error);
 
         return () => {
-            stateUnsubscribe();
-            unsubscribe();
+            canceled = true;
+            unsubscribe?.();
+            stateUnsubscribe?.();
         };
-    }, [url, enabled]);
+    }, [url, headers, enabled]);
 
     return {status};
 }
