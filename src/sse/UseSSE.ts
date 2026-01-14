@@ -6,6 +6,7 @@ import {SSEManager} from "./SSEManager";
 
 type UseSSEParams = {
     url: string | null;
+    headers?: Record<string, string>;
     onMessage: (event: EventSourceMessage) => void;
     enabled?: boolean;
 };
@@ -13,12 +14,14 @@ type UseSSEParams = {
 /**
  * 内部会复用链接,无需关心实现,即使多次调用也没有关系
  * @param url
+ * @param headers
  * @param onMessage
  * @param enabled /// 可以控制,比如未登录的情况下不要订阅
  * @return {status} 状态
  */
 export function useSSE({
                            url,
+                           headers,
                            onMessage,
                            enabled = true,
                        }: UseSSEParams) {
@@ -30,7 +33,7 @@ export function useSSE({
         if (!url || !enabled) return;
 
         const manager = sseRegistry.getOrCreate(url, () => {
-            return new SSEManager(url)
+            return new SSEManager(url, headers || {})
         });
 
         const unsubscribe = manager.subscribe((event) => {
