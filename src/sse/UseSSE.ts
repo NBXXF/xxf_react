@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
-import { EventSourceMessage } from "@microsoft/fetch-event-source";
-import { SSEStatus } from "./SSEStatus";
-import { sseRegistry } from "./SSERegistry";
-import { SSEManager } from "./SSEManager";
+import {useEffect, useRef, useState} from "react";
+import {EventSourceMessage} from "@microsoft/fetch-event-source";
+import {SSEStatus} from "./SSEStatus";
+import {sseRegistry} from "./SSERegistry";
+import {SSEManager} from "./SSEManager";
 
 type UseSSEParams = {
     url?: string | null | Promise<string | null>;
@@ -22,59 +22,40 @@ export function useSSE({
 
     const [status, setStatus] = useState<SSEStatus>(SSEStatus.idle);
 
-    // ---------- Step 1: resolve async url and headers ----------
-    const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
-    const [resolvedHeaders, setResolvedHeaders] = useState<Record<string, string>>({});
-
     useEffect(() => {
         if (!enabled) return;
 
-        let canceled = false;
-
-        (async () => {
-            try {
-                const u = url instanceof Promise ? await url : url || null;
-                const h = headers instanceof Promise ? await headers : headers || {};
-
-                if (!canceled) {
-                    setResolvedUrl(u);
-                    setResolvedHeaders(h);
-                }
-            } catch (err) {
-                console.error("useSSE resolve error:", err);
-            }
-        })();
-
-        return () => {
-            canceled = true;
-        };
-    }, [url, headers, enabled]);
-
-    // ---------- Step 2: create SSEManager ----------
-    useEffect(() => {
-        if (!enabled || !resolvedUrl) return;
-
-        let canceled = false;
+        let canceled = false; // 用于处理 cleanup
         let manager: SSEManager | null = null;
         let unsubscribe: (() => void) | null = null;
         let stateUnsubscribe: (() => void) | null = null;
 
-        manager = sseRegistry.getOrCreate(resolvedUrl, () => new SSEManager(resolvedUrl, resolvedHeaders));
+        async function setupSSE() {
+            // 先解析异步 url 和 headers
+            const resolvedUrl = typeof url === "function" || url instanceof Promise ? await url : url;
+            if (!resolvedUrl) return;
 
-        unsubscribe = manager.subscribe((event) => {
-            if (!canceled) callbackRef.current(event);
-        });
+            const resolvedHeaders = headers instanceof Promise ? await headers : headers || {};
 
-        stateUnsubscribe = manager.subscribeStatus((s) => {
-            if (!canceled) setStatus(s);
-        });
+            if (canceled) return; // 组件卸载或依赖变化时直接返回
+
+            manager = sseRegistry.getOrCreate(resolvedUrl, () => new SSEManager(resolvedUrl, resolvedHeaders));
+
+            unsubscribe = manager.subscribe((event) => {
+                callbackRef.current(event);
+            });
+
+            stateUnsubscribe = manager.subscribeStatus((s) => setStatus(s));
+        }
+
+        setupSSE().catch(console.error);
 
         return () => {
             canceled = true;
             unsubscribe?.();
             stateUnsubscribe?.();
         };
-    }, [resolvedUrl, resolvedHeaders, enabled]);
+    }, [url, headers, enabled]);
 
-    return { status };
+    return {status};
 }
