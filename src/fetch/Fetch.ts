@@ -1,3 +1,5 @@
+import {TimeoutError} from "./TimeoutError";
+
 /**
  * 带超时时间的请求,默认没有超时时间限制
  * @param input
@@ -48,8 +50,11 @@ export async function fetchWithTimeout(
             console.error(
                 `[http timeout] ${url} (${timeout}ms)`
             );
+            // 抛自定义超时错误
+            throw new TimeoutError(timeout, url);
+        } else {
+            throw e;
         }
-        throw e;
     } finally {
         clearTimeout(timer);
         if (signal) {
