@@ -55,7 +55,8 @@ export function useSSE({
             unsubscribe?.();
             stateUnsubscribe?.();
         };
-    }, [url, headers, enabled]);
+    //}, [url, headers, enabled]);
+    }, [url, enabled]);
 
     return {status};
 }
