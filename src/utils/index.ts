@@ -1,1 +1,1 @@
-export * from './TestUtils'
+export * from './scroll-to-center'
