@@ -1,12 +1,51 @@
 {
   "name": "xxf_react",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "private": false,
 
   "type": "module",
 
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./sse": {
+      "types": "./dist/sse/index.d.ts",
+      "import": "./dist/sse/index.js"
+    },
+    "./fetch": {
+      "types": "./dist/fetch/index.d.ts",
+      "import": "./dist/fetch/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils/index.js"
+    },
+    "./refresh": {
+      "types": "./dist/refresh/index.d.ts",
+      "import": "./dist/refresh/index.js"
+    },
+    "./models": {
+      "types": "./dist/models/index.d.ts",
+      "import": "./dist/models/index.js"
+    },
+    "./media": {
+      "types": "./dist/media/index.d.ts",
+      "import": "./dist/media/index.js"
+    },
+    "./flow": {
+      "types": "./dist/flow/index.d.ts",
+      "import": "./dist/flow/index.js"
+    },
+    "./responsive": {
+      "types": "./dist/responsive/index.d.ts",
+      "import": "./dist/responsive/index.js"
+    }
+  },
 
   "files": ["dist"],
 
