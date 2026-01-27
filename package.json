@@ -1,6 +1,6 @@
 {
   "name": "xxf_react",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": false,
 
   "type": "module",
@@ -20,6 +20,7 @@
 
   "dependencies": {
     "@microsoft/fetch-event-source": "^2.0.1",
+    "react-responsive": "^10.0.1",
     "react-toastify": "^11.0.5",
     "react-virtuoso": "^4.17.0",
     "use-debounce": "^10.0.6",
