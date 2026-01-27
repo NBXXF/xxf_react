@@ -1,1 +1,1 @@
-export * from './index';
+export * from './promise_ext';
