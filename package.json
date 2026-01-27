@@ -1,6 +1,6 @@
 {
   "name": "xxf_react",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "private": false,
 
   "type": "module",
@@ -44,6 +44,10 @@
     "./responsive": {
       "types": "./dist/responsive/index.d.ts",
       "import": "./dist/responsive/index.js"
+    },
+    "./foundation": {
+      "types": "./dist/foundation/index.d.ts",
+      "import": "./dist/foundation/index.js"
     }
   },
 
