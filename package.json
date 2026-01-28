@@ -1,6 +1,6 @@
 {
   "name": "xxf_react",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "private": false,
   "type": "module",
   "main": "dist/index.js",
@@ -45,9 +45,15 @@
     "./foundation": {
       "types": "./dist/foundation/index.d.ts",
       "import": "./dist/foundation/index.js"
+    },
+    "./layout": {
+      "types": "./dist/layout/index.d.ts",
+      "import": "./dist/layout/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc"
   },
